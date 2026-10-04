@@ -1,0 +1,15 @@
+# Local database (create it with: python seed_database.py)
+restaurant.db
+*.db
+*.seeding
+*-journal
+
+# Python
+__pycache__/
+*.pyc
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
