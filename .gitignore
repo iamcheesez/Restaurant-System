@@ -11,6 +11,9 @@ __pycache__/
 # Test runs (recreated by python tests/run_all.py)
 tests/_work/
 
+# GUI error details (written only if something unexpected goes wrong)
+gui_error.log
+
 # OS / editors
 .DS_Store
 Thumbs.db

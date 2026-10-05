@@ -5,6 +5,7 @@ A Database Systems course project: a restaurant system where an employee (cashie
 ## Requirements
 
 - Python 3.9 or newer. Nothing else to install: SQLite comes with Python.
+- For the desktop app: Tkinter, which comes with the python.org installers for Windows and macOS (on Linux, install the `python3-tk` package).
 
 ## Quick start
 
@@ -18,6 +19,14 @@ python restaurant_system.py
 The first command creates `restaurant.db` with realistic demo data. The second starts the program. Log in as `admin` with password `1234`. The password is not shown while you type.
 
 On Windows, use `py` instead of `python` if `python` isn't found.
+
+### Desktop app (work in progress)
+
+```
+python restaurant_gui.py
+```
+
+This opens the desktop version on the same `restaurant.db` (the one next to `restaurant_gui.py`; use `--db PATH` for another file). It currently shows the dashboard, tables, orders, menu, receipts, reports and employees, but buttons that change data are not connected yet; they say so in the status bar.
 
 ## Demo logins
 
@@ -109,19 +118,33 @@ Business rules the program enforces:
 - **Service functions** take parameters, run the SQL and return data. Every change runs in one transaction. A broken business rule raises `RestaurantError` with a message meant for the user. They never read input or print.
 - **The terminal menu** asks for input, calls a service function and prints the result.
 
+The desktop app in `gui/` sits on top of the same service functions: GUI → service functions → SQLite. The GUI contains no SQL and never opens the database itself.
+
+| Part of `gui/` | What it does |
+|---|---|
+| `app.py` | Main window: opens the database, signs employees in and out, and runs every service call through one place that turns errors into readable messages |
+| `shell.py` | The layout after sign-in: sidebar, top bar, page area |
+| `pages/` | One file per screen (dashboard, tables, order, menu, receipts, reports, employees) plus the login screen |
+| `widgets.py` | Reusable parts: status bar, sidebar, page header, cards, data tables, table cards, bar charts |
+| `dialogs.py` | Message, confirmation and form dialogs |
+| `theme.py` | Colors, fonts and styles for the whole app |
+| `formatting.py` | Turns data into display text (money, times, the printed receipt) |
+
 ## Running the tests
 
 ```
 python tests/run_all.py
 ```
 
-This runs every test suite in order on a fresh test database and prints the total. Suites 1–6 drive the terminal program like a person would, so they need macOS or Linux. Suite 7 tests the service functions directly, and suite 8 checks that the terminal program still behaves exactly as it did before the service layer was added (it needs git).
+This runs every test suite in order on a fresh test database and prints the total. Suites 1–6 drive the terminal program like a person would, so they need macOS or Linux. Suite 7 tests the service functions directly, and suite 8 checks that the terminal program still behaves exactly as it did before the service layer was added (it needs git). Suite 9 checks the GUI code (no SQL, service functions only), and suite 10 opens the GUI and clicks through every page; it is skipped when Tkinter or a display isn't available.
 
 ## Files
 
 | File | Purpose |
 |---|---|
 | `restaurant_system.py` | The program: database schema, service functions and the terminal menu |
+| `restaurant_gui.py` | Starts the desktop app |
+| `gui/` | The desktop app (Tkinter) |
 | `seed_database.py` | Creates or resets `restaurant.db` with demo data |
 | `tests/` | Test suites; `run_all.py` runs them all |
 | `restaurant.db` | Created when you run either script; not stored in the repository |
