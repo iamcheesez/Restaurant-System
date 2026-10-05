@@ -100,11 +100,28 @@ Business rules the program enforces:
 - Paid orders cannot be modified, cancelled or transferred.
 - A table is occupied exactly when it has an open order.
 - Employees who appear on orders or receipts cannot be removed, so the history stays intact.
+- Dishes that appear on orders cannot be renamed or deleted (mark them sold out instead).
+
+## Code structure
+
+`restaurant_system.py` has two layers:
+
+- **Service functions** take parameters, run the SQL and return data. Every change runs in one transaction. A broken business rule raises `RestaurantError` with a message meant for the user. They never read input or print.
+- **The terminal menu** asks for input, calls a service function and prints the result.
+
+## Running the tests
+
+```
+python tests/run_all.py
+```
+
+This runs every test suite in order on a fresh test database and prints the total. Suites 1–6 drive the terminal program like a person would, so they need macOS or Linux. Suite 7 tests the service functions directly, and suite 8 checks that the terminal program still behaves exactly as it did before the service layer was added (it needs git).
 
 ## Files
 
 | File | Purpose |
 |---|---|
-| `restaurant_system.py` | The program: database schema, all features and the menu |
+| `restaurant_system.py` | The program: database schema, service functions and the terminal menu |
 | `seed_database.py` | Creates or resets `restaurant.db` with demo data |
+| `tests/` | Test suites; `run_all.py` runs them all |
 | `restaurant.db` | Created when you run either script; not stored in the repository |
