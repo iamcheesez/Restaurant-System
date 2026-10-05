@@ -32,6 +32,16 @@ results, shown, callback_errors = [], [], []
 dialogs.show_message = lambda parent, title, message, error=False: shown.append((title, message, error))
 
 
+def _never_block(dialog, focus=None):
+    """No dialog may wait for a person during this suite: record it and close it as cancelled."""
+    shown.append((dialog.title_text, getattr(dialog, "message_text", ""), False))
+    dialog.cancel()
+    return dialog.result
+
+
+dialogs.Dialog.show = _never_block
+
+
 def check(name, cond, detail=""):
     results.append((name, bool(cond)))
     print(f"[{'PASS' if cond else 'FAIL'}] {name}" + (f"  ({detail})" if detail else ""))
@@ -280,10 +290,7 @@ mp.table.select(5)
 placeholder_buttons += [mp.edit, mp.availability, mp.delete]
 for b in placeholder_buttons:
     b.invoke()
-app.show_page("order", order_id=27)
-settle(app)
-for name in ("add", "transfer", "cancel", "pay", "bill"):
-    op.buttons[name].invoke()
+# (Phase 4A connected the order and table buttons, so only Menu and Employees buttons are placeholders now.)
 check("placeholder buttons only show a status message", app.status.kind == "info" and "Phase 4" in app.status.text,
       app.status.text)
 check("placeholder buttons changed nothing in the database", dump() == before)

@@ -2,6 +2,7 @@
 from tkinter import ttk
 
 import restaurant_system as rs
+from gui import actions
 from gui.formatting import elapsed, money, plural
 from gui.pages.base import Page
 from gui.theme import SPACE
@@ -39,14 +40,11 @@ class TablesPage(Page):
         self.actions = ttk.Frame(self.detail, style="Surface.TFrame")
         self.actions.pack(fill="x", pady=(16, 0))
         self.buttons = {
-            "seat": ttk.Button(self.actions, text="Seat customers", style="Primary.TButton",
-                               command=self.later("Seating customers")),
+            "seat": ttk.Button(self.actions, text="Seat customers", style="Primary.TButton", command=self.seat),
             "open": ttk.Button(self.actions, text="Open order", style="Primary.TButton", command=self._open_order),
-            "transfer": ttk.Button(self.actions, text="Transfer to another table",
-                                   command=self.later("Transferring a table")),
-            "pay": ttk.Button(self.actions, text="Pay", command=self.later("Payment")),
-            "cancel": ttk.Button(self.actions, text="Cancel order", style="Danger.TButton",
-                                 command=self.later("Cancelling an order")),
+            "transfer": ttk.Button(self.actions, text="Transfer to another table", command=self.transfer),
+            "pay": ttk.Button(self.actions, text="Pay", command=self.pay),
+            "cancel": ttk.Button(self.actions, text="Cancel order", style="Danger.TButton", command=self.cancel),
         }
         self._show_detail(None)
 
@@ -61,7 +59,8 @@ class TablesPage(Page):
             return
         self.tables = tables
         occupied = sum(1 for t in tables if t["status"] == "occupied")
-        self.header.set(subtitle=f"{occupied} of {plural(len(tables), 'table')} occupied. Click a table to select it.")
+        self.header.set(subtitle=f"{occupied} of {plural(len(tables), 'table')} occupied. Click a table to select it; "
+                                 "double-click an occupied table to open its order.")
         for card in self.cards.values():
             card.destroy()
         self.cards = {}
@@ -70,7 +69,7 @@ class TablesPage(Page):
             if t["order_id"]:
                 details = ((f"Order #{t['order_id']}", True), (t["taken_by"], False),
                            (f"Open {elapsed(t['order_time'])}, {money(t['total'])}", False))
-            self.cards[t["table_id"]] = TableCard(self.floor.inner, t, self.select, details)
+            self.cards[t["table_id"]] = TableCard(self.floor.inner, t, self.select, details, on_open=self.open_table)
         self._columns = 0
         self._layout(self.floor.width())
         self.select(self.selected_id)
@@ -118,7 +117,43 @@ class TablesPage(Page):
         for name in order:
             self.buttons[name].pack(fill="x", pady=(0, 8))
 
+    # ---------------------------------------------------------------- actions (all through gui.actions)
+
+    def selected_table(self):
+        return next((t for t in self.tables if t["table_id"] == self.selected_id), None)
+
+    def open_table(self, table_id):
+        """Double-click: open the table's order (a free table is only selected)."""
+        self.select(table_id)
+        self._open_order()
+
+    def seat(self):
+        table = self.selected_table()
+        if table is not None:
+            actions.seat_customers(self.app, table["table_id"])
+            self.refresh()
+
+    def transfer(self):
+        table = self.selected_table()
+        if table is not None and table["order_id"]:
+            destination = actions.transfer(self.app, table["order_id"])
+            if destination is not None:
+                self.selected_id = destination  # keep the moved order selected
+            self.refresh()
+
+    def pay(self):
+        table = self.selected_table()
+        if table is not None and table["order_id"]:
+            actions.pay(self.app, table["order_id"])
+            self.refresh()
+
+    def cancel(self):
+        table = self.selected_table()
+        if table is not None and table["order_id"]:
+            actions.cancel(self.app, table["order_id"])
+            self.refresh()
+
     def _open_order(self):
-        table = next((t for t in self.tables if t["table_id"] == self.selected_id), None)
+        table = self.selected_table()
         if table and table["order_id"]:
             self.app.show_page("order", order_id=table["order_id"])

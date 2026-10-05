@@ -79,6 +79,27 @@ def receipt_text(receipt, width=40):
     return "\n".join(lines)
 
 
+def bill_text(order, bill, width=40):
+    """An order's bill (from get_order and get_bill) as fixed-width lines. The total comes from the service."""
+    def row(left, right):
+        left = left[:max(0, width - len(right) - 1)]
+        return f"{left}{' ' * (width - len(left) - len(right))}{right}"
+
+    status = f"Paid, receipt #{order['receipt_id']}" if order["status"] == "paid" else "Open"
+    lines = [f"Bill for order #{order['order_id']}".center(width).rstrip(), "",
+             row(f"Table {order['table_id']}", status),
+             row("Taken by", order["taken_by"]),
+             row("Opened", day_and_time(order["order_time"])),
+             "-" * width]
+    if not bill["lines"]:
+        lines.append("No dishes yet.")
+    for line in bill["lines"]:
+        lines.append(line["name"][:width])
+        lines.append(row(f"  {line['quantity']} x {money(line['price_at_order'])}", money(line["subtotal"])))
+    lines += ["-" * width, row("Total", money(bill["total"]))]
+    return "\n".join(lines)
+
+
 def parse_whole_number(text, label):
     """Read an optional whole number typed by the user. Returns (number or None, error message or None)."""
     text = (text or "").strip()

@@ -17,7 +17,7 @@ class DashboardPage(Page):
 
     def build(self):
         self.header.add_action("Find a receipt", lambda: self.app.show_page("receipts"))
-        self.header.add_action("Seat customers", lambda: self.app.show_page("tables"), style="Primary.TButton")
+        self.header.add_action("Seat customers", self._seat_customers, style="Primary.TButton")
 
         self.stats = StatStrip(self.body, [("free", "Free tables"), ("occupied", "Occupied tables"),
                                            ("open", "Open orders"), ("sales", "Today's sales")])
@@ -46,6 +46,10 @@ class DashboardPage(Page):
         ], empty_message="No open orders. Seat customers from the Tables page to start one.",
             on_activate=lambda r: self.app.show_page("order", order_id=r["order_id"]))
         self.orders.pack(fill="both", expand=True)
+
+    def _seat_customers(self):
+        self.app.show_page("tables")
+        self.app.status.info("Choose a free table, then Seat customers.")
 
     def refresh(self):
         tables = self.load(rs.table_overview)

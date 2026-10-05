@@ -26,7 +26,7 @@ On Windows, use `py` instead of `python` if `python` isn't found.
 python restaurant_gui.py
 ```
 
-This opens the desktop version on the same `restaurant.db` (the one next to `restaurant_gui.py`; use `--db PATH` for another file). It currently shows the dashboard, tables, orders, menu, receipts, reports and employees, but buttons that change data are not connected yet; they say so in the status bar.
+This opens the desktop version on the same `restaurant.db` (the one next to `restaurant_gui.py`; use `--db PATH` for another file). Tables and orders work fully: seat customers, open an order (double-click an occupied table), add and remove items, show the bill, transfer, cancel and pay. The menu, receipts, reports and employees pages show their data, but their buttons that change data are not connected yet; they say so in the status bar.
 
 ## Demo logins
 
@@ -127,6 +127,8 @@ The desktop app in `gui/` sits on top of the same service functions: GUI → ser
 | `pages/` | One file per screen (dashboard, tables, order, menu, receipts, reports, employees) plus the login screen |
 | `widgets.py` | Reusable parts: status bar, sidebar, page header, cards, data tables, table cards, bar charts |
 | `dialogs.py` | Message, confirmation and form dialogs |
+| `order_dialogs.py` | Add items, bill, transfer and payment dialogs |
+| `actions.py` | Table and order actions shared by the Tables and Order pages: ask, confirm, call one service function, report the result |
 | `theme.py` | Colors, fonts and styles for the whole app |
 | `formatting.py` | Turns data into display text (money, times, the printed receipt) |
 
@@ -136,7 +138,7 @@ The desktop app in `gui/` sits on top of the same service functions: GUI → ser
 python tests/run_all.py
 ```
 
-This runs every test suite in order on a fresh test database and prints the total. Suites 1–6 drive the terminal program like a person would, so they need macOS or Linux. Suite 7 tests the service functions directly, and suite 8 checks that the terminal program still behaves exactly as it did before the service layer was added (it needs git). Suite 9 checks the GUI code (no SQL, service functions only), and suite 10 opens the GUI and clicks through every page; it is skipped when Tkinter or a display isn't available.
+This runs every test suite in order on a fresh test database and prints the total. Suites 1–6 drive the terminal program like a person would, so they need macOS or Linux. Suite 7 tests the service functions directly, and suite 8 checks that the terminal program still behaves exactly as it did before the service layer was added (it needs git). Suite 9 checks the GUI code (no SQL, service functions only), suite 10 opens the GUI and clicks through every page, and suite 11 seats customers, adds and removes items, transfers, cancels and pays through the GUI's real dialogs. Suites 10 and 11 are skipped when Tkinter or a display isn't available.
 
 ## Files
 

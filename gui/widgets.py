@@ -398,11 +398,12 @@ class SeatMarkers(tk.Canvas):
 
 
 class TableCard(tk.Frame):
-    """One table on the floor: number, seats, status and (when occupied) its open order. Click to select."""
+    """One table on the floor: number, seats, status and (when occupied) its open order.
+    Click to select; double-click runs on_open (the Tables page opens the order)."""
 
     WIDTH, HEIGHT = 184, 184
 
-    def __init__(self, parent, table, on_click, details=()):
+    def __init__(self, parent, table, on_click, details=(), on_open=None):
         self.table = table
         occupied = table["status"] == "occupied"
         bg = COLORS["saffron_tint"] if occupied else COLORS["surface"]
@@ -426,6 +427,8 @@ class TableCard(tk.Frame):
                 row=3 + i, column=0, columnspan=2, sticky="w", pady=(6 if i == 0 else 0, 0), **pad)
         for widget in [self] + self._descendants(self):
             widget.bind("<Button-1>", lambda e: on_click(table["table_id"]))
+            if on_open:
+                widget.bind("<Double-Button-1>", lambda e: on_open(table["table_id"]))
         self.bind("<Return>", lambda e: on_click(table["table_id"]))
         self.bind("<space>", lambda e: on_click(table["table_id"]))
 

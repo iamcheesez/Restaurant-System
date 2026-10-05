@@ -132,6 +132,7 @@ def apply_theme(root):
     style.configure("SurfaceMuted.TLabel", background=c["surface"], foreground=c["muted"])
     style.configure("SurfaceSmall.TLabel", background=c["surface"], foreground=c["muted"], font=FONTS["small"])
     style.configure("SurfaceError.TLabel", background=c["surface"], foreground=c["chili"])
+    style.configure("SurfaceSuccess.TLabel", background=c["surface"], foreground=c["primary"])
     style.configure("Section.TLabel", background=c["surface"], font=FONTS["section"])
     style.configure("Stat.TLabel", background=c["surface"], font=FONTS["stat"])
     style.configure("Total.TLabel", background=c["surface"], font=FONTS["section"])
@@ -195,6 +196,14 @@ def apply_theme(root):
     style.map("TCombobox", bordercolor=[("focus", c["primary"])],
               fieldbackground=[("readonly", c["surface"])], selectbackground=[("readonly", c["surface"])],
               selectforeground=[("readonly", c["ink"])])
+    style.configure("TSpinbox", fieldbackground=c["surface"], foreground=c["ink"], padding=(8, 5),
+                    bordercolor=c["border"], lightcolor=c["surface"], darkcolor=c["surface"], arrowcolor=c["muted"],
+                    background=c["surface"])
+    style.map("TSpinbox", bordercolor=[("focus", c["primary"])])
+    style.configure("Surface.TRadiobutton", background=c["surface"], foreground=c["ink"], focuscolor=c["primary"],
+                    indicatorbackground=c["surface"], indicatorforeground=c["primary"], padding=(0, 4))
+    style.map("Surface.TRadiobutton", background=[("active", c["surface"])],
+              indicatorbackground=[("pressed", c["select"]), ("selected", c["surface"])])
     style.configure("TCheckbutton", background=c["page"], foreground=c["ink"], focuscolor=c["primary"],
                     indicatorbackground=c["surface"], indicatorforeground=c["primary"])
     style.map("TCheckbutton", indicatorbackground=[("pressed", c["select"]), ("selected", c["surface"])],

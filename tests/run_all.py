@@ -7,7 +7,8 @@ data the previous one left). Suites 1-6 drive the terminal program the way a per
 would, so they need macOS or Linux (on Windows, getpass reads the keyboard directly
 and cannot be fed test input). Suites 7 and 8 test the service functions and the CLI
 compatibility. Suite 9 checks the GUI source (no SQL, services only) and suite 10 opens
-the GUI and clicks through it; suite 10 is skipped when this Python has no Tkinter or
+the GUI and clicks through it; suite 11 seats, orders, transfers, cancels and pays through
+the GUI's real dialogs. Suites 10 and 11 are skipped when this Python has no Tkinter or
 there is no display. Test files are written to tests/_work/, which is deleted and
 recreated on every run.
 """
@@ -29,6 +30,7 @@ SUITES = [
     "suite_8_cli_compat.py",
     "suite_9_gui_static.py",
     "suite_10_gui_smoke.py",
+    "suite_11_gui_orders.py",
 ]
 
 

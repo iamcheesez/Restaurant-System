@@ -3,6 +3,7 @@ A paid order is shown read-only: its change buttons are disabled and a notice ex
 from tkinter import ttk
 
 import restaurant_system as rs
+from gui import actions
 from gui.formatting import day_and_time, elapsed, money, plural
 from gui.pages.base import Page
 from gui.widgets import Badge, Card, Column, DataTable, EmptyState, Notice
@@ -49,12 +50,12 @@ class OrderPage(Page):
         toolbar.pack(fill="x", pady=(16, 10))
         self.buttons = {}
         for name, text, command, style, side in (
-                ("add", "Add item", self.later("Adding items"), "Primary.TButton", "left"),
-                ("remove", "Remove item", self.later("Removing items"), "TButton", "left"),
-                ("pay", "Pay", self.later("Payment"), "Primary.TButton", "right"),
-                ("cancel", "Cancel order", self.later("Cancelling an order"), "Danger.TButton", "right"),
-                ("transfer", "Transfer", self.later("Transferring a table"), "TButton", "right"),
-                ("bill", "Show bill", self.later("Printing the bill"), "TButton", "right")):
+                ("add", "Add item", self.add_items, "Primary.TButton", "left"),
+                ("remove", "Remove item", self.remove_item, "TButton", "left"),
+                ("pay", "Pay", self.pay, "Primary.TButton", "right"),
+                ("cancel", "Cancel order", self.cancel, "Danger.TButton", "right"),
+                ("transfer", "Transfer", self.transfer, "TButton", "right"),
+                ("bill", "Show bill", self.show_bill, "TButton", "right")):
             self.buttons[name] = ttk.Button(toolbar, text=text, command=command, style=style)
             self.buttons[name].pack(side=side, padx=(0, 8) if side == "left" else (8, 0))
 
@@ -123,6 +124,44 @@ class OrderPage(Page):
         self.content.pack_forget()
         self.header.set(title=f"Order #{self.order_id}" if self.order_id else "Order", subtitle="")
         self.missing.pack(fill="x", anchor="nw")
+
+    # ---------------------------------------------------------------- actions (all through gui.actions)
+    # The buttons are disabled for paid orders, but each action still asks the service layer first,
+    # so a stale screen can never change a paid order. The page refreshes after every action.
+
+    def add_items(self):
+        if self.order_id is not None:
+            actions.add_items(self.app, self.order_id, on_added=self.refresh)
+            self.refresh()
+
+    def remove_item(self):
+        line = self.items.selected()
+        if self.order_id is not None and line is not None:
+            actions.remove_item(self.app, self.order_id, line)
+            self.refresh()
+
+    def show_bill(self):
+        if self.order_id is not None:
+            actions.show_bill(self.app, self.order_id)
+
+    def transfer(self):
+        if self.order_id is not None:
+            actions.transfer(self.app, self.order_id)
+            self.refresh()
+
+    def cancel(self):
+        if self.order_id is None:
+            return
+        result = actions.cancel(self.app, self.order_id)
+        if result is not None:  # the order no longer exists: show the freed table on the floor
+            self.app.show_page("tables", table_id=result["table_id"])
+        else:
+            self.refresh()
+
+    def pay(self):
+        if self.order_id is not None:
+            actions.pay(self.app, self.order_id)
+            self.refresh()  # a paid order now shows read-only, with its receipt
 
     def _table_id(self):
         return self.order["table_id"] if self.order else None

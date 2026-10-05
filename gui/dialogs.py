@@ -17,6 +17,8 @@ class Dialog(tk.Toplevel):
         self.transient(parent.winfo_toplevel())
         self.resizable(False, False)
         self.result = None
+        self.title_text = title
+        self.buttons = {}
         self._width = width
         self.body = ttk.Frame(self, style="Surface.TFrame", padding=(24, 22, 24, 16))
         self.body.pack(fill="both", expand=True)
@@ -27,12 +29,17 @@ class Dialog(tk.Toplevel):
         self._default = None
 
     def add_buttons(self, buttons):
-        """buttons: list of (text, command, style), left to right. The last one is the default (Enter)."""
+        """buttons: list of (text, command, style), left to right. The last one is the default (Enter).
+        Returns the buttons in the same order."""
+        made = []
         for text, command, style in reversed(buttons):
             button = ttk.Button(self.button_row, text=text, command=command, style=style)
             button.pack(side="right", padx=(8, 0))
-        self._default = buttons[-1][1]
-        self.bind("<Return>", lambda e: self._default())
+            self.buttons[text] = button
+            made.insert(0, button)
+        self._default = made[-1]
+        self.bind("<Return>", lambda e: self._default.invoke())
+        return made
 
     def show(self, focus=None):
         """Show the dialog, wait until it closes, and return its result."""
@@ -68,6 +75,7 @@ class Dialog(tk.Toplevel):
 class MessageDialog(Dialog):
     def __init__(self, parent, title, message, error=False):
         super().__init__(parent, title)
+        self.message_text, self.error = message, error
         ttk.Label(self.body, text=title, style="Section.TLabel").pack(anchor="w")
         ttk.Label(self.body, text=message, style="SurfaceError.TLabel" if error else "Surface.TLabel",
                   wraplength=380, justify="left").pack(anchor="w", pady=(8, 0))
@@ -75,15 +83,21 @@ class MessageDialog(Dialog):
 
 
 class ConfirmDialog(Dialog):
-    """Ask before an action that can't be undone. The confirm button names the action ('Cancel order')."""
+    """Ask before an action that changes or removes data. The confirm button names the action
+    ('Cancel order'). Subclasses can add choices to self.body and override confirm()."""
 
-    def __init__(self, parent, title, message, confirm_text, danger=True, cancel_text="Go back"):
-        super().__init__(parent, title)
+    def __init__(self, parent, title, message, confirm_text, danger=True, cancel_text="Go back", width=420):
+        super().__init__(parent, title, width=width)
+        self.message_text = message
         ttk.Label(self.body, text=title, style="Section.TLabel").pack(anchor="w")
-        ttk.Label(self.body, text=message, style="Surface.TLabel", wraplength=380, justify="left").pack(
-            anchor="w", pady=(8, 0))
-        self.add_buttons([(cancel_text, self.cancel, "TButton"),
-                          (confirm_text, lambda: self.close(True), "Danger.TButton" if danger else "Primary.TButton")])
+        ttk.Label(self.body, text=message, style="Surface.TLabel", wraplength=max(380, width - 48),
+                  justify="left").pack(anchor="w", pady=(8, 0))
+        self.cancel_button, self.confirm_button = self.add_buttons([
+            (cancel_text, self.cancel, "TButton"),
+            (confirm_text, self.confirm, "Danger.TButton" if danger else "Primary.TButton")])
+
+    def confirm(self):
+        self.close(True)
 
 
 class FormDialog(Dialog):
@@ -142,5 +156,5 @@ def show_message(parent, title, message, error=False):
     return MessageDialog(parent, title, message, error).show()
 
 
-def ask_confirm(parent, title, message, confirm_text, danger=True):
-    return bool(ConfirmDialog(parent, title, message, confirm_text, danger).show())
+def ask_confirm(parent, title, message, confirm_text, danger=True, cancel_text="Go back"):
+    return bool(ConfirmDialog(parent, title, message, confirm_text, danger, cancel_text).show())
